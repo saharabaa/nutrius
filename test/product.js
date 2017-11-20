@@ -2,7 +2,7 @@ var Sourcer = artifacts.require("./Sourcer.sol");
 
 contract('Sourcer', function(accounts) {
 
-  it("...Add ingredient and quantity to array.", function() {
+  it("...should store the value 89.", function() {
     return Sourcer.deployed().then(function(instance) {
       sourcerInstance = instance;
 
@@ -10,7 +10,7 @@ contract('Sourcer', function(accounts) {
     }).then(function() {
       return sourcerInstance.getNumberOfIngredients.call();
     }).then(function(storedData) {
-      assert.equal(storedData, 1, "Ingredient was not added to array.");
+      assert.equal(storedData, 1, "The value 89 was not stored.");
     });
   });
 });
