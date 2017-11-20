@@ -1,16 +1,16 @@
-var Sourcer = artifacts.require("./Sourcer.sol");
+var Product = artifacts.require("./Product.sol");
 
-contract('Sourcer', function(accounts) {
+contract('Product', function(accounts) {
 
-  it("...should store the value 89.", function() {
-    return Sourcer.deployed().then(function(instance) {
-      sourcerInstance = instance;
+  it("...should show product name.", function() {
+    return Product.deployed().then(function(instance) {
+      productInstance = instance;
 
-      return sourcerInstance.addIngredient('Glucosamine', '1500kg');
+      return productInstance.setName('Synflex');
     }).then(function() {
-      return sourcerInstance.getNumberOfIngredients.call();
+      return productInstance.getName.call();
     }).then(function(storedData) {
-      assert.equal(storedData, 1, "The value 89 was not stored.");
+      assert.equal(storedData, 'Synflex', "The name of product was not stored");
     });
   });
 });
