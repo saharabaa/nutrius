@@ -22,8 +22,8 @@ contract Product {
         ingredients[hash] = _qty;
     }
 
-    function getIngredient(string _index) public returns(string) {
-        bytes32 hash = sha3(_index);
+    function getIngredient(string _name) public returns(string) {
+        bytes32 hash = sha3(_name);
         return ingredients[hash];
     }
 }
