@@ -1,5 +1,6 @@
 import React, {Component} from 'react'
 import SourcerContract from '../build/contracts/Sourcer.json'
+import ProductContract from '../build/contracts/Product.json'
 import getWeb3 from './utils/getWeb3'
 
 class SupplyChain extends Component {
@@ -9,11 +10,24 @@ class SupplyChain extends Component {
         this.state = {
             name: '',
             qty: '',
-            web3: null
+            web3: null,
+            productRequestedMessage: ''
         }
 
         this.handleInputChange = this.handleInputChange.bind(this);
         this.handleSubmit = this.handleSubmit.bind(this);
+        this.handleProductRequest = this.handleProductRequest.bind(this);
+
+        getWeb3
+            .then(results => {
+                this.setState({
+                    web3: results.web3
+                })
+                this.fetchIngredients()
+            })
+            .catch(() => {
+                console.log('Error finding web3.')
+            })
     }
 
     handleInputChange(event) {
@@ -27,45 +41,38 @@ class SupplyChain extends Component {
     }
 
     handleSubmit(event) {
-        this.instantiateContract();
+        this.initiateIngredientContract();
         event.preventDefault();
     }
 
-    componentWillMount() {
-        // Get network provider and web3 instance.
-        // See utils/getWeb3 for more info.
+    loadContract(loadableContract) {
+        const contract = require('truffle-contract')
+        const loadedContract = contract(loadableContract)
+        loadedContract.setProvider(this.state.web3.currentProvider)
 
-        getWeb3
-            .then(results => {
-                this.setState({
-                    web3: results.web3
-                })
-
-                // Instantiate contract once web3 provided.
-                // this.instantiateContract()
-            })
-            .catch(() => {
-                console.log('Error finding web3.')
-            })
+        return loadedContract;
     }
 
-    instantiateContract() {
-        /*
-         * SMART CONTRACT EXAMPLE
-         *
-         * Normally these functions would be called in the context of a
-         * state management library, but for convenience I've placed them here.
-         */
+    fetchIngredients() {
+        var sourcerContract = this.loadContract(SourcerContract);
 
-        const contract = require('truffle-contract')
-        const sourcerContract = contract(SourcerContract)
-        sourcerContract.setProvider(this.state.web3.currentProvider)
-
-        var self = this
-            self.state = this.state
-        // Declaring this for later so we can chain functions on SimpleStorage.
         var sourcerContractInstance = {}
+        // Get accounts.
+        this.state.web3.eth.getAccounts((error, accounts) => {
+            sourcerContract.deployed().then((instance) => {
+                sourcerContractInstance = instance
+                return sourcerContractInstance.getNumberOfIngredients.call(accounts[0])
+            }).then((result) => {
+                return this.setState({numberOfIngredients: result.c[0]})
+            })
+        })
+    }
 
+    initiateIngredientContract() {
+
+        var sourcerContract = this.loadContract(SourcerContract);
+
+        var sourcerContractInstance = {}
         sourcerContractInstance.state = this.state
         // Get accounts.
         this.state.web3.eth.getAccounts((error, accounts) => {
@@ -76,14 +83,46 @@ class SupplyChain extends Component {
                 }
                 sourcerContractInstance = instance
 
-                // Stores a given value, 5 by default.
+                console.log(`Adding ${state.name} with qty of ${state.qty} to ${accounts[0]}`);
                 return sourcerContractInstance.addIngredient(state.name, state.qty, {from: accounts[0]})
             }).then((result) => {
                 // Get the value from the contract to prove it worked.
                 return sourcerContractInstance.getNumberOfIngredients.call(accounts[0])
             }).then((result) => {
                 // Update state with the result.
-                return this.setState({storageValue: result.c[0]})
+                return this.setState({numberOfIngredients: result.c[0]})
+            })
+        })
+    }
+
+    handleProductRequest(event) {
+        event.preventDefault()
+        this.initiateProductContract()
+    }
+
+    initiateProductContract() {
+        var productContract = this.loadContract(ProductContract);
+
+        var productContractInstance = {}
+
+        // Get accounts.
+        this.state.web3.eth.getAccounts((error, accounts) => {
+            productContract.deployed().then((instance) => {
+                productContractInstance = instance
+
+                // console.log(`Adding ${state.name} with qty of ${state.qty} to ${accounts[0]}`);
+                return productContractInstance.setName('Synflex 1500', '', {from: accounts[0]})
+            }).then((result) => {
+                // Get the value from the contract to prove it worked.
+                return productContractInstance.getName.call(accounts[0])
+            }).then((result) => {
+                // Update state with the result.
+                var params = {
+                    productName: result,
+                    productRequestedMessage: `Product ${result} has been requested`
+                }
+
+                return this.setState(params)
             })
         })
     }
@@ -92,15 +131,27 @@ class SupplyChain extends Component {
         return (
             <div className="SupplyChain">
                 <h2>Supply chian</h2>
-                <p>Product has {this.state.storageValue} ingredients</p>
+                <p>Product {this.state.productName} has {this.state.numberOfIngredients} ingredients</p>
                 <form onSubmit={this.handleSubmit}>
-                    <label>
-                        Name:
-                        <input type="text" name="name" value={this.state.value} onChange={this.handleInputChange} />
-                        <input type="text" name="qty" value={this.state.value} onChange={this.handleInputChange} />
-                    </label>
+                    <div>
+                        <label>
+                            Name:
+                            <input type="text" name="name" value={this.state.value} onChange={this.handleInputChange}/>
+                        </label>
+                    </div>
+                    <div>
+                        <label>
+                            Qty:
+                            <input type="text" name="qty" value={this.state.value} onChange={this.handleInputChange}/>
+                        </label>
+                    </div>
                     <input type="submit" value="Submit"/>
                 </form>
+
+                <div>
+                    <button onClick={this.handleProductRequest}>Request Product</button>
+                    <div> {this.state.productRequestedMessage}</div>
+                </div>
             </div>
         );
     }
