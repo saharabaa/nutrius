@@ -1,6 +1,9 @@
 pragma solidity ^0.4.18;
 
-contract Sourcer {
+
+import 'zeppelin-solidity/contracts/ownership/Ownable.sol';
+
+contract Sourcer is Ownable {
 
     struct Ingredient {
         string name;
@@ -13,7 +16,7 @@ contract Sourcer {
 
     }
 
-    function addIngredient(string _name, string _quantity)  public {
+    function addIngredient(string _name, string _quantity) onlyOwner( ) public {
         ingredients.push(Ingredient({
             name: _name,
             quantity: _quantity
