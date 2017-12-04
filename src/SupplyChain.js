@@ -11,7 +11,8 @@ class SupplyChain extends Component {
             name: '',
             qty: '',
             web3: null,
-            productRequestedMessage: ''
+            productRequestedMessage: '',
+            sourcerContractAddress: null
         }
 
         this.handleInputChange = this.handleInputChange.bind(this);
@@ -55,12 +56,18 @@ class SupplyChain extends Component {
 
     fetchIngredients() {
         var sourcerContract = this.loadContract(SourcerContract);
-
         var sourcerContractInstance = {}
         // Get accounts.
-        this.state.web3.eth.getAccounts((error, accounts) => {
+            this.state.web3.eth.getAccounts((error, accounts) => {
             sourcerContract.deployed().then((instance) => {
+
+
                 sourcerContractInstance = instance
+                this.setState(
+                    {
+                        sourcerContractAddress: sourcerContractInstance.address
+                    })
+
                 return sourcerContractInstance.getNumberOfIngredients.call(accounts[0])
             }).then((result) => {
                 return this.setState({numberOfIngredients: result.c[0]})
@@ -109,8 +116,21 @@ class SupplyChain extends Component {
         this.state.web3.eth.getAccounts((error, accounts) => {
             productContract.deployed().then((instance) => {
                 productContractInstance = instance
+                console.log('sourcer address in product', this.state.sourcerContractAddress)
 
-                // console.log(`Adding ${state.name} with qty of ${state.qty} to ${accounts[0]}`);
+                return productContractInstance.fetchNumberOfIngredients.call(this.state.sourcerContractAddress);
+            }).then((result) => {
+                // Get the value from the contract to prove it worked.
+                console.log(result)
+            })
+        })
+
+        // Get accounts.
+        this.state.web3.eth.getAccounts((error, accounts) => {
+            productContract.deployed().then((instance) => {
+                productContractInstance = instance
+
+
                 return productContractInstance.setName('Synflex 1500', '', {from: accounts[0]})
             }).then((result) => {
                 // Get the value from the contract to prove it worked.

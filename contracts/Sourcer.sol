@@ -1,6 +1,5 @@
 pragma solidity ^0.4.18;
 
-
 contract Sourcer {
 
     struct Ingredient {
@@ -14,7 +13,7 @@ contract Sourcer {
 
     }
 
-    function addIngredient(string _name, string _quantity) public {
+    function addIngredient(string _name, string _quantity)  public {
         ingredients.push(Ingredient({
             name: _name,
             quantity: _quantity
