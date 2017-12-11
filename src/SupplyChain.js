@@ -139,7 +139,7 @@ class SupplyChain extends Component {
                 // Update state with the result.
                 var params = {
                     productName: result,
-                    productRequestedMessage: `Product ${result} has been requested`
+                    productRequestedMessage: `Product ${result} has been requested via the Blockchian, address ${accounts[0]}`
                 }
 
                 return this.setState(params)
@@ -167,7 +167,7 @@ class SupplyChain extends Component {
                     </div>
                     <input type="submit" value="Submit"/>
                 </form>
-
+                <hr/>
                 <div>
                     <button onClick={this.handleProductRequest}>Request Product</button>
                     <div> {this.state.productRequestedMessage}</div>
